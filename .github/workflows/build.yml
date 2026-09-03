@@ -1,0 +1,15 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kmod:
+    uses: Kurokesu/ci/.github/workflows/rpi-kmod-build.yml@main
