@@ -108,10 +108,8 @@
 #define OS08E10_REG_MPLL_NC_SEL OS08E10_REG8(0x0B, 0x14)
 #define OS08E10_REG_DAC_BITS_SEL OS08E10_REG8(0x0B, 0x80)
 
-/* Chip ID */
 #define OS08E10_CHIP_ID 0x10450853
 
-/* Sensor frequencies */
 #define OS08E10_FREQ_EXTCLK 24000000
 #define OS08E10_FREQ_ROWCLK_50MHZ 50000000
 #define OS08E10_FREQ_ROWCLK_25MHZ 25000000
@@ -139,11 +137,9 @@
 #define OS08E10_TRIGGER_INIT 0x31
 #define OS08E10_MIPI_RST_FIX 0x14
 
-/* OS08E10_REG_DCLKIN_CISISP_GATING_EN Bits */
 #define OS08E10_CLK_GATING_DEFAULT 0xB7
 #define OS08E10_DCLKIN_TP_GATING_EN BIT(6)
 
-/* OS08E10_REG_ISP_MODE Bits */
 #define OS08E10_ISP_MODE_DEFAULT 0x03
 #define OS08E10_ISP_MODE_UPDOWN_AUTO_BAYER_EN BIT(4)
 #define OS08E10_ISP_MODE_MIRROR_AUTO_BAYER_EN BIT(5)
@@ -151,23 +147,19 @@
 	(OS08E10_ISP_MODE_DEFAULT | OS08E10_ISP_MODE_UPDOWN_AUTO_BAYER_EN | \
 	 OS08E10_ISP_MODE_MIRROR_AUTO_BAYER_EN)
 
-/* Exposure control */
 #define OS08E10_EXPOSURE_MIN 2
 #define OS08E10_EXPOSURE_STEP 1
 
-/* Analog gain control */
 #define OS08E10_ANA_GAIN_MIN 0x010
 #define OS08E10_ANA_GAIN_MAX 0x1FF
 #define OS08E10_ANA_GAIN_STEP 1
 #define OS08E10_ANA_GAIN_DEFAULT 0x010
 
-/* Digital gain control */
 #define OS08E10_DGTL_GAIN_MIN 0x0040
 #define OS08E10_DGTL_GAIN_MAX 0x07FF
 #define OS08E10_DGTL_GAIN_DEFAULT 0x0040
 #define OS08E10_DGTL_GAIN_STEP 1
 
-/* Test Patterns */
 #define OS08E10_TEST_PATTERN_DISABLED 0x00
 #define OS08E10_TEST_PATTERN_COLOR_BARS 0x01
 #define OS08E10_TEST_PATTERN_GRADIENT 0x09
@@ -215,7 +207,6 @@ struct os08e10_mode {
 	struct os08e10_reg_sequence reg_sequence;
 };
 
-/* Written under full reset before the clocks are configured */
 static const struct os08e10_reg os08e10_preinit[] = {
 	{ OS08E10_REG8(0x0F, 0x2E), 0x02 }, { OS08E10_REG8(0x01, 0x27), 0x00 },
 	{ OS08E10_REG8(0x03, 0x84), 0x00 }, { OS08E10_REG8(0x03, 0xA0), 0x01 },
@@ -495,7 +486,6 @@ static const struct os08e10_reg os08e10_4k_raw10_369_config[] = {
 	{ OS08E10_REG_R_CLK_TRAIL, 0x08 },
 };
 
-/* MIPI output size and enable */
 static const struct os08e10_reg os08e10_mipi_init[] = {
 	{ OS08E10_REG8(0x02, 0x99), 0x00 }, { OS08E10_REG8(0x02, 0x9A), 0x0F },
 	{ OS08E10_REG8(0x02, 0x9B), 0x00 }, { OS08E10_REG8(0x02, 0x9C), 0x0F },
@@ -663,7 +653,6 @@ struct os08e10 {
 	struct media_pad pad[NUM_PADS];
 
 	struct v4l2_ctrl_handler ctrl_handler;
-	/* V4L2 Controls */
 	struct v4l2_ctrl *exposure;
 	struct v4l2_ctrl *vflip;
 	struct v4l2_ctrl *hflip;
@@ -796,7 +785,6 @@ static int os08e10_write_regs(struct os08e10 *os08e10,
 	return ret;
 }
 
-/* Falls back to the first format, which every link frequency supports */
 static const struct os08e10_format *os08e10_get_format(struct os08e10 *os08e10,
 						       u32 code)
 {
@@ -1062,7 +1050,6 @@ static int os08e10_get_selection(struct v4l2_subdev *sd,
 	return -EINVAL;
 }
 
-/* Leaves the CIS and ISP logic held, so init can program registers */
 static int os08e10_soft_reset(struct os08e10 *os08e10)
 {
 	int ret;
@@ -1116,7 +1103,6 @@ static int os08e10_enable_streams(struct v4l2_subdev *sd,
 	if (ret < 0)
 		return ret;
 
-	/* Reset */
 	ret = os08e10_soft_reset(os08e10);
 	if (ret < 0) {
 		dev_err(dev, "%s failed to reset\n", __func__);
@@ -1146,7 +1132,7 @@ static int os08e10_enable_streams(struct v4l2_subdev *sd,
 		goto err_rpm_put;
 	}
 
-	/* MIPI output */
+	/* MIPI config */
 	ret = os08e10_write_regs(os08e10, os08e10_mipi_init,
 				 ARRAY_SIZE(os08e10_mipi_init), NULL);
 	if (ret < 0) {
@@ -1199,7 +1185,6 @@ static int os08e10_disable_streams(struct v4l2_subdev *sd,
 	return ret;
 }
 
-/* Power/clock management functions */
 static int os08e10_power_on(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
@@ -1254,7 +1239,6 @@ static int os08e10_power_off(struct device *dev)
 	return 0;
 }
 
-/* Verify chip ID */
 static int os08e10_identify_module(struct os08e10 *os08e10)
 {
 	int ret;
@@ -1323,7 +1307,6 @@ static const struct v4l2_subdev_internal_ops os08e10_internal_ops = {
 	.init_state = os08e10_init_state,
 };
 
-/* Initialize control handlers */
 static int os08e10_init_controls(struct os08e10 *os08e10)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&os08e10->sd);
@@ -1341,7 +1324,6 @@ static int os08e10_init_controls(struct os08e10 *os08e10)
 	if (ret)
 		return ret;
 
-	/* By default, PIXEL_RATE is read only */
 	pixel_rate =
 		os08e10->pll_config->freq_rowclk * OS08E10_PIXCLK_PER_ROWCLK;
 	ctrl = v4l2_ctrl_new_std(ctrl_hdlr, &os08e10_ctrl_ops,
@@ -1442,14 +1424,12 @@ static int os08e10_parse_hw_config(struct os08e10 *os08e10)
 	if (ret)
 		return dev_err_probe(dev, ret, "failed to get regulators\n");
 
-	/* Get optional reset pin */
 	hw_config->gpio_reset =
 		devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_HIGH);
 	if (IS_ERR(hw_config->gpio_reset))
 		return dev_err_probe(dev, PTR_ERR(hw_config->gpio_reset),
 				     "failed to get reset gpio\n");
 
-	/* Get input clock (extclk) */
 	hw_config->extclk = devm_clk_get(dev, "extclk");
 	if (IS_ERR(hw_config->extclk))
 		return dev_err_probe(dev, PTR_ERR(hw_config->extclk),
@@ -1464,7 +1444,6 @@ static int os08e10_parse_hw_config(struct os08e10 *os08e10)
 	if (ret)
 		return dev_err_probe(dev, ret, "failed to parse endpoint\n");
 
-	/* Check the number of MIPI CSI2 data lanes */
 	if (ep_cfg.bus.mipi_csi2.num_data_lanes != 4) {
 		ret = dev_err_probe(dev, -EINVAL,
 				    "invalid number of CSI2 data lanes %d\n",
@@ -1474,7 +1453,6 @@ static int os08e10_parse_hw_config(struct os08e10 *os08e10)
 
 	hw_config->num_data_lanes = ep_cfg.bus.mipi_csi2.num_data_lanes;
 
-	/* Check the link frequency set in device tree */
 	if (!ep_cfg.nr_of_link_frequencies) {
 		ret = dev_err_probe(dev, -EINVAL,
 				    "link-frequency not found in DT\n");
@@ -1483,7 +1461,6 @@ static int os08e10_parse_hw_config(struct os08e10 *os08e10)
 
 	extclk_frequency = clk_get_rate(hw_config->extclk);
 
-	/* Match a PLL config to current EXTCLK and link frequency */
 	for (i = 0; i < ARRAY_SIZE(os08e10_pll_configs); i++) {
 		if (os08e10_pll_configs[i].freq_extclk == extclk_frequency &&
 		    os08e10_pll_configs[i].freq_link ==
@@ -1531,7 +1508,6 @@ static int os08e10_probe(struct i2c_client *client)
 
 	v4l2_i2c_subdev_init(&os08e10->sd, client, &os08e10_subdev_ops);
 
-	/* Check the hardware configuration in device tree */
 	ret = os08e10_parse_hw_config(os08e10);
 	if (ret)
 		return ret;
@@ -1563,13 +1539,11 @@ static int os08e10_probe(struct i2c_client *client)
 	if (ret)
 		goto error_power_off;
 
-	/* Initialize subdev */
 	os08e10->sd.internal_ops = &os08e10_internal_ops;
 	os08e10->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
 			     V4L2_SUBDEV_FL_HAS_EVENTS;
 	os08e10->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
 
-	/* Initialize source pads */
 	os08e10->pad[IMAGE_PAD].flags = MEDIA_PAD_FL_SOURCE;
 
 	ret = media_entity_pads_init(&os08e10->sd.entity, NUM_PADS,
