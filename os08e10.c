@@ -157,9 +157,8 @@
 #define OS08E10_DGTL_GAIN_DEFAULT 0x0040
 #define OS08E10_DGTL_GAIN_STEP 1
 
-#define OS08E10_TEST_PATTERN_DISABLED 0x00
-#define OS08E10_TEST_PATTERN_COLOR_BARS 0x01
-#define OS08E10_TEST_PATTERN_GRADIENT 0x09
+#define OS08E10_TEST_EN BIT(0)
+#define OS08E10_TEST_GRADIENT BIT(3)
 
 #define OS08E10_NATIVE_WIDTH 3856U
 #define OS08E10_NATIVE_HEIGHT 2176U
@@ -488,13 +487,13 @@ static const struct os08e10_reg os08e10_mipi_init[] = {
 static const char *const os08e10_test_pattern_menu[] = {
 	"Disabled",
 	"Color Bars",
-	"Gradient Color Bars",
+	"Gradient",
 };
 
 static const unsigned int os08e10_test_pattern_val[] = {
-	OS08E10_TEST_PATTERN_DISABLED,
-	OS08E10_TEST_PATTERN_COLOR_BARS,
-	OS08E10_TEST_PATTERN_GRADIENT,
+	0,
+	OS08E10_TEST_EN,
+	OS08E10_TEST_EN | OS08E10_TEST_GRADIENT,
 };
 
 /* Listed in power-up order */
