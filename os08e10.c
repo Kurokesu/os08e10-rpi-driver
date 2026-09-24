@@ -22,7 +22,7 @@
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
 
-/* Paged 8-bit registers, one u32 packs page, address, width and byte order */
+/* Page, address, width and byte order packed into u32 */
 #define OS08E10_REG_ADDR_MASK GENMASK(7, 0)
 #define OS08E10_REG_PAGE_MASK GENMASK(11, 8)
 #define OS08E10_REG_WIDTH_MASK GENMASK(19, 16)
@@ -116,10 +116,7 @@
 #define OS08E10_FREQ_LINK_1452MBPS 726000000
 #define OS08E10_FREQ_LINK_738MBPS 369000000
 
-/*
- * Frame timing. VTS is dummy lines on top of the fixed array readout, row
- * clocks scale to pixel clocks by 12 so that HBLANK stays positive
- */
+/* Frame timing */
 #define OS08E10_ARRAY_ROWS 2224
 #define OS08E10_FRAME_OVERHEAD 2
 #define OS08E10_VTS_BASE (OS08E10_ARRAY_ROWS + OS08E10_FRAME_OVERHEAD)
@@ -128,7 +125,7 @@
 #define OS08E10_ADD_DELAY_NUM 8
 #define OS08E10_EXPOSURE_OFFSET (OS08E10_ADD_DELAY_NUM * 4 + 1)
 
-/* OS08E10_REG_SOFT_AUTO_RELEASE_EN values, active low resets */
+/* Soft reset values */
 #define OS08E10_RESET_ALL 0x00
 #define OS08E10_RESET_LOGIC 0x17
 #define OS08E10_RESET_NONE 0x1F
@@ -215,11 +212,7 @@ static const struct os08e10_reg os08e10_preinit[] = {
 	{ OS08E10_REG8(0x03, 0xC1), 0x20 },
 };
 
-/*
- * PLL config for:
- * External clock - 24MHz
- * Link frequency - 726MHz
- */
+/* 24MHz EXTCLK, 726MHz link */
 static const struct os08e10_reg os08e10_pll_config_24_726[] = {
 	{ OS08E10_REG_BCLK_GATING_SW_OFF, 0x16 },
 	{ OS08E10_REG_DPLL_PCLK_PRE_SEL, 0x11 },
@@ -239,11 +232,7 @@ static const struct os08e10_reg os08e10_pll_config_24_726[] = {
 	{ OS08E10_REG_MPLL_NC_SEL, 0xF2 },
 };
 
-/*
- * PLL config for:
- * External clock - 24MHz
- * Link frequency - 369MHz
- */
+/* 24MHz EXTCLK, 369MHz link */
 static const struct os08e10_reg os08e10_pll_config_24_369[] = {
 	{ OS08E10_REG_BCLK_GATING_SW_OFF, 0x16 },
 	{ OS08E10_REG_DPLL_PCLK_PRE_SEL, 0x11 },
@@ -508,12 +497,11 @@ static const unsigned int os08e10_test_pattern_val[] = {
 	OS08E10_TEST_PATTERN_GRADIENT,
 };
 
-/* regulator supplies */
+/* Listed in power-up order */
 static const char *const os08e10_supply_names[] = {
-	/* Supplies must be enabled in this order */
-	"vdig", /* Digital I/O DOVDD (1.8V) supply */
-	"vana", /* Analog AVDD (2.8V) supply */
-	"vddl", /* Digital Core DVDD (1.2V) supply */
+	"vdig", /* Digital I/O DOVDD (1.8V) */
+	"vana", /* Analog AVDD (2.8V) */
+	"vddl", /* Digital core DVDD (1.2V) */
 };
 
 static const struct os08e10_mode os08e10_modes_raw10_726[] = {
@@ -761,7 +749,7 @@ static int os08e10_write_regs(struct os08e10 *os08e10,
 		len = OS08E10_REG_WIDTH(regs[i].reg);
 		i++;
 
-		/* Burst runs of consecutive addresses below the page select */
+		/* Batch contiguous registers below page select */
 		while (i < num_regs && OS08E10_REG_PAGE(regs[i].reg) == page &&
 		       OS08E10_REG_ADDR(regs[i].reg) == addr + len &&
 		       addr + len + OS08E10_REG_WIDTH(regs[i].reg) <=
@@ -837,10 +825,7 @@ static int os08e10_set_ctrl(struct v4l2_ctrl *ctrl)
 	if (ctrl->id == V4L2_CID_VBLANK)
 		os08e10_adjust_exposure_range(os08e10, mode);
 
-	/*
-	 * Applying V4L2 control value only happens
-	 * when power is up for streaming
-	 */
+	/* Write only while powered, stream start applies current values */
 	if (pm_runtime_get_if_in_use(&client->dev) == 0)
 		return 0;
 
@@ -863,7 +848,7 @@ static int os08e10_set_ctrl(struct v4l2_ctrl *ctrl)
 				    OS08E10_TRIGGER, &ret);
 		break;
 	case V4L2_CID_TEST_PATTERN:
-		/* Pattern generator clock is gated unless a pattern is on */
+		/* Pattern generator clock is gated unless pattern is on */
 		val = OS08E10_CLK_GATING_DEFAULT;
 		if (ctrl->val)
 			val |= OS08E10_DCLKIN_TP_GATING_EN;
@@ -975,12 +960,11 @@ static void os08e10_set_framing_limits(struct os08e10 *os08e10,
 	int vblank_min = mode->vts - mode->height;
 	int hblank;
 
-	/* Update limits and set FPS to default */
 	__v4l2_ctrl_modify_range(os08e10->vblank, vblank_min,
 				 OS08E10_VTS_MAX - mode->height,
 				 os08e10->vblank->step, vblank_min);
 
-	/* Setting this will adjust the exposure limits as well */
+	/* Also updates exposure range through set_ctrl */
 	__v4l2_ctrl_s_ctrl(os08e10->vblank, vblank_min);
 
 	hblank = mode->hts * OS08E10_PIXCLK_PER_ROWCLK - mode->width;
@@ -1516,11 +1500,7 @@ static int os08e10_probe(struct i2c_client *client)
 	if (IS_ERR(os08e10->regmap))
 		return PTR_ERR(os08e10->regmap);
 
-	/*
-	 * Enable power management. The driver supports runtime PM, but needs to
-	 * work when runtime PM is disabled in the kernel. To that end, power
-	 * the sensor on manually here and identify it
-	 */
+	/* Power on manually so probe works without runtime PM */
 	ret = os08e10_power_on(os08e10->dev);
 	if (ret)
 		return ret;
@@ -1568,7 +1548,7 @@ static int os08e10_probe(struct i2c_client *client)
 		goto error_subdev_cleanup;
 	}
 
-	/* Drop the usage count, autosuspend then powers the sensor off */
+	/* Let autosuspend power sensor off */
 	pm_runtime_mark_last_busy(os08e10->dev);
 	pm_runtime_put_autosuspend(os08e10->dev);
 
