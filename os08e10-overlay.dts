@@ -68,7 +68,7 @@
 				vdig-supply = <&cam_dummy_reg>;	/* 1.8v */
 				vddl-supply = <&cam_dummy_reg>;	/* 1.2v */
 
-				rotation = <0>;
+				rotation = <180>;
 				orientation = <2>;
 
 				port {
