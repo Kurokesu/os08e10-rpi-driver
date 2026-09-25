@@ -91,8 +91,8 @@ Expected output (varies by link frequency and lane configuration):
 Available cameras
 -----------------
 0 : os08e10 [3840x2160 12-bit] (/base/axi/pcie@1000120000/rp1/i2c@70000/os08e10@3c)
-    Modes: 'SBGGR10_CSI2P' : 3840x2160 [30.01 fps - (0, 0)/3840x2160 crop]
-           'SBGGR12_CSI2P' : 3840x2160 [15.00 fps - (0, 0)/3840x2160 crop]
+    Modes: 'SBGGR10_CSI2P' : 3840x2160 [60.01 fps - (0, 0)/3840x2160 crop]
+           'SBGGR12_CSI2P' : 3840x2160 [30.01 fps - (0, 0)/3840x2160 crop]
 ```
 
 Start live preview:
