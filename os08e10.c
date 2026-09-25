@@ -64,9 +64,11 @@
 #define OS08E10_REG_DIG_GAIN1 OS08E10_REG16(0x01, 0x21)
 #define OS08E10_REG_ANA_GAIN1 OS08E10_REG16_LE(0x01, 0x24)
 #define OS08E10_REG_MIRROR_FLIP OS08E10_REG8(0x01, 0x32)
+#define OS08E10_REG_MIPI_D3_SKEW_SEL OS08E10_REG8(0x02, 0x69)
 #define OS08E10_REG_DATA_ID1 OS08E10_REG8(0x02, 0x75)
 #define OS08E10_REG_DATA_ID2 OS08E10_REG8(0x02, 0x76)
 #define OS08E10_REG_DATA_ID3 OS08E10_REG8(0x02, 0x77)
+#define OS08E10_REG_PAUSE_CK OS08E10_REG8(0x02, 0x79)
 #define OS08E10_REG_R_INIT OS08E10_REG16_LE(0x02, 0x88)
 #define OS08E10_REG_R_LPX_DAT OS08E10_REG8(0x02, 0x8B)
 #define OS08E10_REG_R_HS_PREPARE OS08E10_REG8(0x02, 0x8C)
@@ -111,6 +113,7 @@
 #define OS08E10_CHIP_ID 0x10450853
 
 #define OS08E10_FREQ_EXTCLK 24000000
+#define OS08E10_FREQ_ROWCLK_12_5MHZ 12500000
 #define OS08E10_FREQ_ROWCLK_25MHZ 25000000
 #define OS08E10_FREQ_ROWCLK_50MHZ 50000000
 #define OS08E10_FREQ_LINK_369MHZ 369000000
@@ -159,6 +162,12 @@
 
 #define OS08E10_TEST_EN BIT(0)
 #define OS08E10_TEST_GRADIENT BIT(3)
+
+#define OS08E10_MIPI_HS_MODE_VF BIT(4)
+#define OS08E10_MIPI_HS_MODE BIT(3)
+#define OS08E10_MIPI_LANE_MASK GENMASK(1, 0)
+#define OS08E10_MIPI_D3_LANE_DIS BIT(4)
+#define OS08E10_MIPI_D2_LANE_DIS BIT(0)
 
 #define OS08E10_NATIVE_WIDTH 3856U
 #define OS08E10_NATIVE_HEIGHT 2176U
@@ -222,6 +231,11 @@ static const struct os08e10_reg os08e10_regs_dpll[] = {
 	{ OS08E10_REG_DCLKIN_CISISP_GATING_EN, OS08E10_CLK_GATING_DEFAULT },
 	{ OS08E10_REG_DCLK_MF_PD_GATING_EN, 0xF7 },
 	{ OS08E10_REG_DAC_PLL_GATING, 0x32 },
+};
+
+static const struct os08e10_reg os08e10_regs_rowclk_12_5mhz[] = {
+	{ OS08E10_REG_DPLL_CP_CLK_PRE_SEL, 0x11 },
+	{ OS08E10_REG_DPLL_BYP_SEL, 0x03 },
 };
 
 static const struct os08e10_reg os08e10_regs_rowclk_25mhz[] = {
@@ -462,8 +476,8 @@ static const struct os08e10_reg os08e10_regs_mipi[] = {
 	{ OS08E10_REG8(0x02, 0x9D), 0x00 }, { OS08E10_REG8(0x02, 0x9E), 0x0F },
 	{ OS08E10_REG8(0x02, 0xA1), 0x70 }, { OS08E10_REG8(0x02, 0xA2), 0x08 },
 	{ OS08E10_REG8(0x02, 0x66), 0xCC }, { OS08E10_REG8(0x02, 0x6D), 0x07 },
-	{ OS08E10_REG8(0x02, 0x79), 0x1B }, { OS08E10_REG8(0x02, 0x7D), 0x07 },
-	{ OS08E10_REG8(0x02, 0x6B), 0x00 }, { OS08E10_REG8(0x02, 0xA3), 0x01 },
+	{ OS08E10_REG8(0x02, 0x7D), 0x07 }, { OS08E10_REG8(0x02, 0x6B), 0x00 },
+	{ OS08E10_REG8(0x02, 0xA3), 0x01 },
 };
 
 static const char *const os08e10_test_pattern_menu[] = {
@@ -548,6 +562,7 @@ struct os08e10_format {
 	unsigned int num_modes;
 };
 
+/* Also serves 12.5MHz, timing tables are in row clocks */
 static const struct os08e10_format os08e10_formats_25mhz[] = {
 	{
 		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
@@ -578,6 +593,7 @@ struct os08e10_pll_config {
 	s64 freq_link;
 	u32 freq_extclk;
 	u32 freq_rowclk;
+	unsigned int num_lanes;
 	struct os08e10_reg_sequence regs_rowclk;
 	struct os08e10_reg_sequence regs_mpll;
 	struct os08e10_reg_sequence regs_dphy;
@@ -589,7 +605,28 @@ static const struct os08e10_pll_config os08e10_pll_configs[] = {
 	{
 		.freq_link = OS08E10_FREQ_LINK_369MHZ,
 		.freq_extclk = OS08E10_FREQ_EXTCLK,
+		.freq_rowclk = OS08E10_FREQ_ROWCLK_12_5MHZ,
+		.num_lanes = 2,
+		.regs_rowclk = {
+			.regs = os08e10_regs_rowclk_12_5mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_rowclk_12_5mhz),
+		},
+		.regs_mpll = {
+			.regs = os08e10_regs_mpll_369mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_mpll_369mhz),
+		},
+		.regs_dphy = {
+			.regs = os08e10_regs_dphy_369mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_dphy_369mhz),
+		},
+		.formats = os08e10_formats_25mhz,
+		.num_formats = ARRAY_SIZE(os08e10_formats_25mhz),
+	},
+	{
+		.freq_link = OS08E10_FREQ_LINK_369MHZ,
+		.freq_extclk = OS08E10_FREQ_EXTCLK,
 		.freq_rowclk = OS08E10_FREQ_ROWCLK_25MHZ,
+		.num_lanes = 4,
 		.regs_rowclk = {
 			.regs = os08e10_regs_rowclk_25mhz,
 			.num_regs = ARRAY_SIZE(os08e10_regs_rowclk_25mhz),
@@ -608,7 +645,28 @@ static const struct os08e10_pll_config os08e10_pll_configs[] = {
 	{
 		.freq_link = OS08E10_FREQ_LINK_726MHZ,
 		.freq_extclk = OS08E10_FREQ_EXTCLK,
+		.freq_rowclk = OS08E10_FREQ_ROWCLK_25MHZ,
+		.num_lanes = 2,
+		.regs_rowclk = {
+			.regs = os08e10_regs_rowclk_25mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_rowclk_25mhz),
+		},
+		.regs_mpll = {
+			.regs = os08e10_regs_mpll_726mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_mpll_726mhz),
+		},
+		.regs_dphy = {
+			.regs = os08e10_regs_dphy_726mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_dphy_726mhz),
+		},
+		.formats = os08e10_formats_25mhz,
+		.num_formats = ARRAY_SIZE(os08e10_formats_25mhz),
+	},
+	{
+		.freq_link = OS08E10_FREQ_LINK_726MHZ,
+		.freq_extclk = OS08E10_FREQ_EXTCLK,
 		.freq_rowclk = OS08E10_FREQ_ROWCLK_50MHZ,
+		.num_lanes = 4,
 		.regs_rowclk = {
 			.regs = os08e10_regs_rowclk_50mhz,
 			.num_regs = ARRAY_SIZE(os08e10_regs_rowclk_50mhz),
@@ -1084,9 +1142,20 @@ static int os08e10_pll_configure(struct os08e10 *os08e10)
 static int os08e10_mipi_configure(struct os08e10 *os08e10)
 {
 	const struct os08e10_pll_config *pll_config = os08e10->pll_config;
+	u32 lane_dis = 0;
 	int ret;
 
+	if (pll_config->num_lanes == 2)
+		lane_dis = OS08E10_MIPI_D3_LANE_DIS | OS08E10_MIPI_D2_LANE_DIS;
+
 	ret = os08e10_reg_seq_write(os08e10, &pll_config->regs_dphy, NULL);
+	ret = os08e10_write(os08e10, OS08E10_REG_MIPI_D3_SKEW_SEL, lane_dis,
+			    &ret);
+	ret = os08e10_write(os08e10, OS08E10_REG_PAUSE_CK,
+			    OS08E10_MIPI_HS_MODE_VF | OS08E10_MIPI_HS_MODE |
+				    FIELD_PREP(OS08E10_MIPI_LANE_MASK,
+					       pll_config->num_lanes - 1),
+			    &ret);
 
 	return os08e10_write_regs(os08e10, os08e10_regs_mipi,
 				  ARRAY_SIZE(os08e10_regs_mipi), &ret);
@@ -1456,14 +1525,13 @@ static int os08e10_parse_hw_config(struct os08e10 *os08e10)
 	if (ret)
 		return dev_err_probe(dev, ret, "failed to parse endpoint\n");
 
-	if (ep_cfg.bus.mipi_csi2.num_data_lanes != 4) {
+	hw_config->num_data_lanes = ep_cfg.bus.mipi_csi2.num_data_lanes;
+	if (hw_config->num_data_lanes != 2 && hw_config->num_data_lanes != 4) {
 		ret = dev_err_probe(dev, -EINVAL,
-				    "invalid number of CSI2 data lanes %d\n",
-				    ep_cfg.bus.mipi_csi2.num_data_lanes);
+				    "invalid number of CSI2 data lanes %u\n",
+				    hw_config->num_data_lanes);
 		goto error_out;
 	}
-
-	hw_config->num_data_lanes = ep_cfg.bus.mipi_csi2.num_data_lanes;
 
 	if (!ep_cfg.nr_of_link_frequencies) {
 		ret = dev_err_probe(dev, -EINVAL,
@@ -1474,23 +1542,26 @@ static int os08e10_parse_hw_config(struct os08e10 *os08e10)
 	extclk_frequency = clk_get_rate(hw_config->extclk);
 
 	for (i = 0; i < ARRAY_SIZE(os08e10_pll_configs); i++) {
-		if (os08e10_pll_configs[i].freq_extclk == extclk_frequency &&
-		    os08e10_pll_configs[i].freq_link ==
-			    ep_cfg.link_frequencies[0])
+		const struct os08e10_pll_config *cfg = &os08e10_pll_configs[i];
+
+		if (cfg->freq_extclk == extclk_frequency &&
+		    cfg->freq_link == ep_cfg.link_frequencies[0] &&
+		    cfg->num_lanes == hw_config->num_data_lanes)
 			break;
 	}
 
 	if (i == ARRAY_SIZE(os08e10_pll_configs)) {
 		ret = dev_err_probe(dev, -EINVAL,
-				    "no PLL config for %lu/%llu Hz\n",
+				    "no PLL config for %lu/%llu Hz, %u lanes\n",
 				    extclk_frequency,
-				    ep_cfg.link_frequencies[0]);
+				    ep_cfg.link_frequencies[0],
+				    hw_config->num_data_lanes);
 		goto error_out;
 	}
 
 	os08e10->pll_config = &os08e10_pll_configs[i];
 
-	dev_info(dev, "extclk: %luHz, link: %lluHz, lanes: %d\n",
+	dev_info(dev, "extclk: %luHz, link: %lluHz, lanes: %u\n",
 		 extclk_frequency, ep_cfg.link_frequencies[0],
 		 hw_config->num_data_lanes);
 
