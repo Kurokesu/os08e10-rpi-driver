@@ -408,6 +408,7 @@ static const struct os08e10_reg os08e10_regs_10bit_50mhz[] = {
 	{ OS08E10_REG_DATA_ID3, 0x2B },
 };
 
+/* Vendor tuned at 50MHz, reused at slower row clocks */
 static const struct os08e10_reg os08e10_regs_12bit[] = {
 	{ OS08E10_REG_PSNC_RST_EN, 0x61 },
 	{ OS08E10_REG_DAC_LOAD_HCG_6X, 0x93 },
@@ -552,6 +553,11 @@ static const struct os08e10_format os08e10_formats_25mhz[] = {
 		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
 		.modes = os08e10_modes_10bit_25mhz,
 		.num_modes = ARRAY_SIZE(os08e10_modes_10bit_25mhz),
+	},
+	{
+		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
+		.modes = os08e10_modes_12bit,
+		.num_modes = ARRAY_SIZE(os08e10_modes_12bit),
 	},
 };
 
