@@ -111,10 +111,10 @@
 #define OS08E10_CHIP_ID 0x10450853
 
 #define OS08E10_FREQ_EXTCLK 24000000
-#define OS08E10_FREQ_ROWCLK_50MHZ 50000000
 #define OS08E10_FREQ_ROWCLK_25MHZ 25000000
-#define OS08E10_FREQ_LINK_1452MBPS 726000000
-#define OS08E10_FREQ_LINK_738MBPS 369000000
+#define OS08E10_FREQ_ROWCLK_50MHZ 50000000
+#define OS08E10_FREQ_LINK_369MHZ 369000000
+#define OS08E10_FREQ_LINK_726MHZ 726000000
 
 /* Frame timing */
 #define OS08E10_ARRAY_ROWS 2224
@@ -203,7 +203,7 @@ struct os08e10_mode {
 	struct os08e10_reg_sequence reg_sequence;
 };
 
-static const struct os08e10_reg os08e10_preinit[] = {
+static const struct os08e10_reg os08e10_regs_preinit[] = {
 	{ OS08E10_REG8(0x0F, 0x2E), 0x02 }, { OS08E10_REG8(0x01, 0x27), 0x00 },
 	{ OS08E10_REG8(0x03, 0x84), 0x00 }, { OS08E10_REG8(0x03, 0xA0), 0x01 },
 	{ OS08E10_REG8(0x03, 0x9E), 0x00 }, { OS08E10_REG8(0x03, 0x9F), 0x60 },
@@ -211,47 +211,46 @@ static const struct os08e10_reg os08e10_preinit[] = {
 	{ OS08E10_REG8(0x03, 0xC1), 0x20 },
 };
 
-/* 24MHz EXTCLK, 726MHz link */
-static const struct os08e10_reg os08e10_pll_config_24_726[] = {
+/* 24MHz EXTCLK, 900MHz DPLL loop */
+static const struct os08e10_reg os08e10_regs_dpll[] = {
 	{ OS08E10_REG_BCLK_GATING_SW_OFF, 0x16 },
 	{ OS08E10_REG_DPLL_PCLK_PRE_SEL, 0x11 },
 	{ OS08E10_REG_DPLL_CNT_CLK_VB_DIS, 0x38 },
-	{ OS08E10_REG_DPLL_CP_CLK_PRE_SEL, 0x12 },
-	{ OS08E10_REG_DPLL_BYP_SEL, 0x00 },
 	{ OS08E10_REG_DPLL_NC_SEL, 0x96 },
 	{ OS08E10_REG_TIMER_CLK_CTRL, 0x10 },
 	{ OS08E10_REG_MIPI_CLK_SEL, 0x0C },
 	{ OS08E10_REG_DCLKIN_CISISP_GATING_EN, OS08E10_CLK_GATING_DEFAULT },
 	{ OS08E10_REG_DCLK_MF_PD_GATING_EN, 0xF7 },
 	{ OS08E10_REG_DAC_PLL_GATING, 0x32 },
-	{ OS08E10_REG_BCLK_GATING_SW_OFF, 0x12 },
-	{ OS08E10_REG_MPLL_PREDIVP_SEL, 0x00 },
-	{ OS08E10_REG_MPLL_PHY_CLK_SEL, 0x00 },
-	{ OS08E10_REG_MPLL_CP_SEL, 0x0B },
-	{ OS08E10_REG_MPLL_NC_SEL, 0xF2 },
 };
 
-/* 24MHz EXTCLK, 369MHz link */
-static const struct os08e10_reg os08e10_pll_config_24_369[] = {
-	{ OS08E10_REG_BCLK_GATING_SW_OFF, 0x16 },
-	{ OS08E10_REG_DPLL_PCLK_PRE_SEL, 0x11 },
-	{ OS08E10_REG_DPLL_CNT_CLK_VB_DIS, 0x38 },
+static const struct os08e10_reg os08e10_regs_rowclk_25mhz[] = {
 	{ OS08E10_REG_DPLL_CP_CLK_PRE_SEL, 0x11 },
 	{ OS08E10_REG_DPLL_BYP_SEL, 0x01 },
-	{ OS08E10_REG_DPLL_NC_SEL, 0x96 },
-	{ OS08E10_REG_TIMER_CLK_CTRL, 0x10 },
-	{ OS08E10_REG_MIPI_CLK_SEL, 0x0C },
-	{ OS08E10_REG_DCLKIN_CISISP_GATING_EN, OS08E10_CLK_GATING_DEFAULT },
-	{ OS08E10_REG_DCLK_MF_PD_GATING_EN, 0xF7 },
-	{ OS08E10_REG_DAC_PLL_GATING, 0x32 },
+};
+
+static const struct os08e10_reg os08e10_regs_rowclk_50mhz[] = {
+	{ OS08E10_REG_DPLL_CP_CLK_PRE_SEL, 0x12 },
+	{ OS08E10_REG_DPLL_BYP_SEL, 0x00 },
+};
+
+static const struct os08e10_reg os08e10_regs_mpll[] = {
 	{ OS08E10_REG_BCLK_GATING_SW_OFF, 0x12 },
 	{ OS08E10_REG_MPLL_PREDIVP_SEL, 0x00 },
-	{ OS08E10_REG_MPLL_PHY_CLK_SEL, 0x04 },
 	{ OS08E10_REG_MPLL_CP_SEL, 0x0B },
+};
+
+static const struct os08e10_reg os08e10_regs_mpll_369mhz[] = {
+	{ OS08E10_REG_MPLL_PHY_CLK_SEL, 0x04 },
 	{ OS08E10_REG_MPLL_NC_SEL, 0xF6 },
 };
 
-static const struct os08e10_reg os08e10_common_init[] = {
+static const struct os08e10_reg os08e10_regs_mpll_726mhz[] = {
+	{ OS08E10_REG_MPLL_PHY_CLK_SEL, 0x00 },
+	{ OS08E10_REG_MPLL_NC_SEL, 0xF2 },
+};
+
+static const struct os08e10_reg os08e10_regs_common[] = {
 	{ OS08E10_REG8(0x02, 0x51), 0x10 }, { OS08E10_REG8(0x00, 0x21), 0x10 },
 	{ OS08E10_REG8(0x0F, 0x00), 0x50 }, { OS08E10_REG8(0x0F, 0x02), 0x10 },
 	{ OS08E10_REG8(0x0F, 0x03), 0x03 }, { OS08E10_REG8(0x0F, 0x13), 0x44 },
@@ -351,90 +350,7 @@ static const struct os08e10_reg os08e10_common_init[] = {
 	{ OS08E10_REG8(0x02, 0xB6), 0x0F }, { OS08E10_REG8(0x02, 0xB7), 0x00 },
 };
 
-/* RAW10 at 726MHz link, 60fps */
-static const struct os08e10_reg os08e10_4k_raw10_726_config[] = {
-	{ OS08E10_REG_PSNC_RST_EN, 0x60 },
-	{ OS08E10_REG_DAC_LOAD_HCG_6X, 0x92 },
-	{ OS08E10_REG_P56, 0x00 },
-	{ OS08E10_REG_P57, 0xD5 },
-	{ OS08E10_REG_P5E, 0x16 },
-	{ OS08E10_REG_P7B, 0x27 },
-	{ OS08E10_REG_P89, 0x0E },
-	{ OS08E10_REG_P8A, 0x50 },
-	{ OS08E10_REG_P91, 0x1A },
-	{ OS08E10_REG_P92, 0x30 },
-	{ OS08E10_REG_P95, 0x50 },
-	{ OS08E10_REG_PAA, 0x0B },
-	{ OS08E10_REG_PC3, 0x0B },
-	{ OS08E10_REG_P86_1X, 0x48 },
-	{ OS08E10_REG_P86_2X, 0x4B },
-	{ OS08E10_REG_P86_3X, 0x4B },
-	{ OS08E10_REG_P88_1X, 0x47 },
-	{ OS08E10_REG_P88_2X, 0x4A },
-	{ OS08E10_REG_P88_3X, 0x4A },
-	{ OS08E10_REG_DAC_BITS_SEL, 0x40 },
-	{ OS08E10_REG_BLC_45, 0x79 },
-	{ OS08E10_REG_BLC_47, 0x79 },
-	{ OS08E10_REG_RAW_12_EN, 0x00 },
-	{ OS08E10_REG_DATA_ID1, 0x2B },
-	{ OS08E10_REG_DATA_ID2, 0x2B },
-	{ OS08E10_REG_DATA_ID3, 0x2B },
-	{ OS08E10_REG_R_INIT, 0x4E20 },
-	{ OS08E10_REG_R_LPX_DAT, 0x0C },
-	{ OS08E10_REG_R_HS_PREPARE, 0x0B },
-	{ OS08E10_REG_R_HS_ZERO, 0x15 },
-	{ OS08E10_REG_R_HS_TRAIL, 0x0F },
-	{ OS08E10_REG_R_EXIT, 0x0D },
-	{ OS08E10_REG_R_LPX_CK, 0x0C },
-	{ OS08E10_REG_R_CLK_PREPARE, 0x0C },
-	{ OS08E10_REG_R_CLK_ZERO, 0x36 },
-	{ OS08E10_REG_R_CLK_POST, 0x14 },
-	{ OS08E10_REG_R_CLK_TRAIL, 0x0F },
-};
-
-/* RAW12 at 726MHz link, 30fps */
-static const struct os08e10_reg os08e10_4k_raw12_726_config[] = {
-	{ OS08E10_REG_PSNC_RST_EN, 0x61 },
-	{ OS08E10_REG_DAC_LOAD_HCG_6X, 0x93 },
-	{ OS08E10_REG_P56, 0x01 },
-	{ OS08E10_REG_P57, 0xDD },
-	{ OS08E10_REG_P5E, 0x14 },
-	{ OS08E10_REG_P7B, 0x0F },
-	{ OS08E10_REG_P89, 0x00 },
-	{ OS08E10_REG_P8A, 0x00 },
-	{ OS08E10_REG_P91, 0x1E },
-	{ OS08E10_REG_P92, 0x84 },
-	{ OS08E10_REG_P95, 0xF6 },
-	{ OS08E10_REG_PAA, 0x18 },
-	{ OS08E10_REG_PC3, 0x18 },
-	{ OS08E10_REG_P86_1X, 0x48 },
-	{ OS08E10_REG_P86_2X, 0x4D },
-	{ OS08E10_REG_P86_3X, 0x4D },
-	{ OS08E10_REG_P88_1X, 0x47 },
-	{ OS08E10_REG_P88_2X, 0x4C },
-	{ OS08E10_REG_P88_3X, 0x4C },
-	{ OS08E10_REG_DAC_BITS_SEL, 0x80 },
-	{ OS08E10_REG_BLC_45, 0x7A },
-	{ OS08E10_REG_BLC_47, 0x7A },
-	{ OS08E10_REG_RAW_12_EN, 0x02 },
-	{ OS08E10_REG_DATA_ID1, 0x2C },
-	{ OS08E10_REG_DATA_ID2, 0x2C },
-	{ OS08E10_REG_DATA_ID3, 0x2C },
-	{ OS08E10_REG_R_INIT, 0x4E20 },
-	{ OS08E10_REG_R_LPX_DAT, 0x0C },
-	{ OS08E10_REG_R_HS_PREPARE, 0x0B },
-	{ OS08E10_REG_R_HS_ZERO, 0x15 },
-	{ OS08E10_REG_R_HS_TRAIL, 0x0F },
-	{ OS08E10_REG_R_EXIT, 0x0D },
-	{ OS08E10_REG_R_LPX_CK, 0x0C },
-	{ OS08E10_REG_R_CLK_PREPARE, 0x0C },
-	{ OS08E10_REG_R_CLK_ZERO, 0x36 },
-	{ OS08E10_REG_R_CLK_POST, 0x14 },
-	{ OS08E10_REG_R_CLK_TRAIL, 0x0F },
-};
-
-/* RAW10 at 369MHz link, 30fps */
-static const struct os08e10_reg os08e10_4k_raw10_369_config[] = {
+static const struct os08e10_reg os08e10_regs_10bit_25mhz[] = {
 	{ OS08E10_REG_PSNC_RST_EN, 0x60 },
 	{ OS08E10_REG_DAC_LOAD_HCG_6X, 0x92 },
 	{ OS08E10_REG_P56, 0x00 },
@@ -461,20 +377,85 @@ static const struct os08e10_reg os08e10_4k_raw10_369_config[] = {
 	{ OS08E10_REG_DATA_ID1, 0x2B },
 	{ OS08E10_REG_DATA_ID2, 0x2B },
 	{ OS08E10_REG_DATA_ID3, 0x2B },
-	{ OS08E10_REG_R_INIT, 0x2710 },
-	{ OS08E10_REG_R_LPX_DAT, 0x07 },
-	{ OS08E10_REG_R_HS_PREPARE, 0x07 },
-	{ OS08E10_REG_R_HS_ZERO, 0x0B },
-	{ OS08E10_REG_R_HS_TRAIL, 0x09 },
-	{ OS08E10_REG_R_EXIT, 0x07 },
-	{ OS08E10_REG_R_LPX_CK, 0x06 },
-	{ OS08E10_REG_R_CLK_PREPARE, 0x06 },
-	{ OS08E10_REG_R_CLK_ZERO, 0x1B },
-	{ OS08E10_REG_R_CLK_POST, 0x0F },
+};
+
+static const struct os08e10_reg os08e10_regs_10bit_50mhz[] = {
+	{ OS08E10_REG_PSNC_RST_EN, 0x60 },
+	{ OS08E10_REG_DAC_LOAD_HCG_6X, 0x92 },
+	{ OS08E10_REG_P56, 0x00 },
+	{ OS08E10_REG_P57, 0xD5 },
+	{ OS08E10_REG_P5E, 0x16 },
+	{ OS08E10_REG_P7B, 0x27 },
+	{ OS08E10_REG_P89, 0x0E },
+	{ OS08E10_REG_P8A, 0x50 },
+	{ OS08E10_REG_P91, 0x1A },
+	{ OS08E10_REG_P92, 0x30 },
+	{ OS08E10_REG_P95, 0x50 },
+	{ OS08E10_REG_PAA, 0x0B },
+	{ OS08E10_REG_PC3, 0x0B },
+	{ OS08E10_REG_P86_1X, 0x48 },
+	{ OS08E10_REG_P86_2X, 0x4B },
+	{ OS08E10_REG_P86_3X, 0x4B },
+	{ OS08E10_REG_P88_1X, 0x47 },
+	{ OS08E10_REG_P88_2X, 0x4A },
+	{ OS08E10_REG_P88_3X, 0x4A },
+	{ OS08E10_REG_DAC_BITS_SEL, 0x40 },
+	{ OS08E10_REG_BLC_45, 0x79 },
+	{ OS08E10_REG_BLC_47, 0x79 },
+	{ OS08E10_REG_RAW_12_EN, 0x00 },
+	{ OS08E10_REG_DATA_ID1, 0x2B },
+	{ OS08E10_REG_DATA_ID2, 0x2B },
+	{ OS08E10_REG_DATA_ID3, 0x2B },
+};
+
+static const struct os08e10_reg os08e10_regs_12bit[] = {
+	{ OS08E10_REG_PSNC_RST_EN, 0x61 },
+	{ OS08E10_REG_DAC_LOAD_HCG_6X, 0x93 },
+	{ OS08E10_REG_P56, 0x01 },
+	{ OS08E10_REG_P57, 0xDD },
+	{ OS08E10_REG_P5E, 0x14 },
+	{ OS08E10_REG_P7B, 0x0F },
+	{ OS08E10_REG_P89, 0x00 },
+	{ OS08E10_REG_P8A, 0x00 },
+	{ OS08E10_REG_P91, 0x1E },
+	{ OS08E10_REG_P92, 0x84 },
+	{ OS08E10_REG_P95, 0xF6 },
+	{ OS08E10_REG_PAA, 0x18 },
+	{ OS08E10_REG_PC3, 0x18 },
+	{ OS08E10_REG_P86_1X, 0x48 },
+	{ OS08E10_REG_P86_2X, 0x4D },
+	{ OS08E10_REG_P86_3X, 0x4D },
+	{ OS08E10_REG_P88_1X, 0x47 },
+	{ OS08E10_REG_P88_2X, 0x4C },
+	{ OS08E10_REG_P88_3X, 0x4C },
+	{ OS08E10_REG_DAC_BITS_SEL, 0x80 },
+	{ OS08E10_REG_BLC_45, 0x7A },
+	{ OS08E10_REG_BLC_47, 0x7A },
+	{ OS08E10_REG_RAW_12_EN, 0x02 },
+	{ OS08E10_REG_DATA_ID1, 0x2C },
+	{ OS08E10_REG_DATA_ID2, 0x2C },
+	{ OS08E10_REG_DATA_ID3, 0x2C },
+};
+
+static const struct os08e10_reg os08e10_regs_dphy_369mhz[] = {
+	{ OS08E10_REG_R_INIT, 0x2710 },	    { OS08E10_REG_R_LPX_DAT, 0x07 },
+	{ OS08E10_REG_R_HS_PREPARE, 0x07 }, { OS08E10_REG_R_HS_ZERO, 0x0B },
+	{ OS08E10_REG_R_HS_TRAIL, 0x09 },   { OS08E10_REG_R_EXIT, 0x07 },
+	{ OS08E10_REG_R_LPX_CK, 0x06 },	    { OS08E10_REG_R_CLK_PREPARE, 0x06 },
+	{ OS08E10_REG_R_CLK_ZERO, 0x1B },   { OS08E10_REG_R_CLK_POST, 0x0F },
 	{ OS08E10_REG_R_CLK_TRAIL, 0x08 },
 };
 
-static const struct os08e10_reg os08e10_mipi_init[] = {
+static const struct os08e10_reg os08e10_regs_dphy_726mhz[] = {
+	{ OS08E10_REG_R_INIT, 0x4E20 },	    { OS08E10_REG_R_LPX_DAT, 0x0C },
+	{ OS08E10_REG_R_HS_PREPARE, 0x0B }, { OS08E10_REG_R_HS_ZERO, 0x15 },
+	{ OS08E10_REG_R_HS_TRAIL, 0x0F },   { OS08E10_REG_R_EXIT, 0x0D },
+	{ OS08E10_REG_R_LPX_CK, 0x0C },	    { OS08E10_REG_R_CLK_PREPARE, 0x0C },
+	{ OS08E10_REG_R_CLK_ZERO, 0x36 },   { OS08E10_REG_R_CLK_POST, 0x14 },
+	{ OS08E10_REG_R_CLK_TRAIL, 0x0F },
+};
+
+static const struct os08e10_reg os08e10_regs_mipi[] = {
 	{ OS08E10_REG8(0x02, 0x99), 0x00 }, { OS08E10_REG8(0x02, 0x9A), 0x0F },
 	{ OS08E10_REG8(0x02, 0x9B), 0x00 }, { OS08E10_REG8(0x02, 0x9C), 0x0F },
 	{ OS08E10_REG8(0x02, 0x9D), 0x00 }, { OS08E10_REG8(0x02, 0x9E), 0x0F },
@@ -503,45 +484,7 @@ static const char *const os08e10_supply_names[] = {
 	"vddl", /* Digital core DVDD (1.2V) */
 };
 
-static const struct os08e10_mode os08e10_modes_raw10_726[] = {
-	{
-		.width = 3840,
-		.height = 2160,
-		.crop = {
-			.left = OS08E10_PIXEL_ARRAY_LEFT,
-			.top = OS08E10_PIXEL_ARRAY_TOP,
-			.width = 3840,
-			.height = 2160,
-		},
-		.hts = 357,
-		.vts = 2334,
-		.reg_sequence = {
-			.regs = os08e10_4k_raw10_726_config,
-			.num_regs = ARRAY_SIZE(os08e10_4k_raw10_726_config),
-		},
-	},
-};
-
-static const struct os08e10_mode os08e10_modes_raw12_726[] = {
-	{
-		.width = 3840,
-		.height = 2160,
-		.crop = {
-			.left = OS08E10_PIXEL_ARRAY_LEFT,
-			.top = OS08E10_PIXEL_ARRAY_TOP,
-			.width = 3840,
-			.height = 2160,
-		},
-		.hts = 635,
-		.vts = 2624,
-		.reg_sequence = {
-			.regs = os08e10_4k_raw12_726_config,
-			.num_regs = ARRAY_SIZE(os08e10_4k_raw12_726_config),
-		},
-	},
-};
-
-static const struct os08e10_mode os08e10_modes_raw10_369[] = {
+static const struct os08e10_mode os08e10_modes_10bit_25mhz[] = {
 	{
 		.width = 3840,
 		.height = 2160,
@@ -554,8 +497,46 @@ static const struct os08e10_mode os08e10_modes_raw10_369[] = {
 		.hts = 350,
 		.vts = 2380,
 		.reg_sequence = {
-			.regs = os08e10_4k_raw10_369_config,
-			.num_regs = ARRAY_SIZE(os08e10_4k_raw10_369_config),
+			.regs = os08e10_regs_10bit_25mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_10bit_25mhz),
+		},
+	},
+};
+
+static const struct os08e10_mode os08e10_modes_10bit_50mhz[] = {
+	{
+		.width = 3840,
+		.height = 2160,
+		.crop = {
+			.left = OS08E10_PIXEL_ARRAY_LEFT,
+			.top = OS08E10_PIXEL_ARRAY_TOP,
+			.width = 3840,
+			.height = 2160,
+		},
+		.hts = 357,
+		.vts = 2334,
+		.reg_sequence = {
+			.regs = os08e10_regs_10bit_50mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_10bit_50mhz),
+		},
+	},
+};
+
+static const struct os08e10_mode os08e10_modes_12bit[] = {
+	{
+		.width = 3840,
+		.height = 2160,
+		.crop = {
+			.left = OS08E10_PIXEL_ARRAY_LEFT,
+			.top = OS08E10_PIXEL_ARRAY_TOP,
+			.width = 3840,
+			.height = 2160,
+		},
+		.hts = 635,
+		.vts = 2624,
+		.reg_sequence = {
+			.regs = os08e10_regs_12bit,
+			.num_regs = ARRAY_SIZE(os08e10_regs_12bit),
 		},
 	},
 };
@@ -566,24 +547,24 @@ struct os08e10_format {
 	unsigned int num_modes;
 };
 
-static const struct os08e10_format os08e10_formats_726[] = {
+static const struct os08e10_format os08e10_formats_25mhz[] = {
 	{
 		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
-		.modes = os08e10_modes_raw10_726,
-		.num_modes = ARRAY_SIZE(os08e10_modes_raw10_726),
-	},
-	{
-		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
-		.modes = os08e10_modes_raw12_726,
-		.num_modes = ARRAY_SIZE(os08e10_modes_raw12_726),
+		.modes = os08e10_modes_10bit_25mhz,
+		.num_modes = ARRAY_SIZE(os08e10_modes_10bit_25mhz),
 	},
 };
 
-static const struct os08e10_format os08e10_formats_369[] = {
+static const struct os08e10_format os08e10_formats_50mhz[] = {
 	{
 		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
-		.modes = os08e10_modes_raw10_369,
-		.num_modes = ARRAY_SIZE(os08e10_modes_raw10_369),
+		.modes = os08e10_modes_10bit_50mhz,
+		.num_modes = ARRAY_SIZE(os08e10_modes_10bit_50mhz),
+	},
+	{
+		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
+		.modes = os08e10_modes_12bit,
+		.num_modes = ARRAY_SIZE(os08e10_modes_12bit),
 	},
 };
 
@@ -591,33 +572,51 @@ struct os08e10_pll_config {
 	s64 freq_link;
 	u32 freq_extclk;
 	u32 freq_rowclk;
-	struct os08e10_reg_sequence regs_pll;
+	struct os08e10_reg_sequence regs_rowclk;
+	struct os08e10_reg_sequence regs_mpll;
+	struct os08e10_reg_sequence regs_dphy;
 	const struct os08e10_format *formats;
 	unsigned int num_formats;
 };
 
 static const struct os08e10_pll_config os08e10_pll_configs[] = {
 	{
-		.freq_link = OS08E10_FREQ_LINK_1452MBPS,
-		.freq_extclk = OS08E10_FREQ_EXTCLK,
-		.freq_rowclk = OS08E10_FREQ_ROWCLK_50MHZ,
-		.regs_pll = {
-			.regs = os08e10_pll_config_24_726,
-			.num_regs = ARRAY_SIZE(os08e10_pll_config_24_726),
-		},
-		.formats = os08e10_formats_726,
-		.num_formats = ARRAY_SIZE(os08e10_formats_726),
-	},
-	{
-		.freq_link = OS08E10_FREQ_LINK_738MBPS,
+		.freq_link = OS08E10_FREQ_LINK_369MHZ,
 		.freq_extclk = OS08E10_FREQ_EXTCLK,
 		.freq_rowclk = OS08E10_FREQ_ROWCLK_25MHZ,
-		.regs_pll = {
-			.regs = os08e10_pll_config_24_369,
-			.num_regs = ARRAY_SIZE(os08e10_pll_config_24_369),
+		.regs_rowclk = {
+			.regs = os08e10_regs_rowclk_25mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_rowclk_25mhz),
 		},
-		.formats = os08e10_formats_369,
-		.num_formats = ARRAY_SIZE(os08e10_formats_369),
+		.regs_mpll = {
+			.regs = os08e10_regs_mpll_369mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_mpll_369mhz),
+		},
+		.regs_dphy = {
+			.regs = os08e10_regs_dphy_369mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_dphy_369mhz),
+		},
+		.formats = os08e10_formats_25mhz,
+		.num_formats = ARRAY_SIZE(os08e10_formats_25mhz),
+	},
+	{
+		.freq_link = OS08E10_FREQ_LINK_726MHZ,
+		.freq_extclk = OS08E10_FREQ_EXTCLK,
+		.freq_rowclk = OS08E10_FREQ_ROWCLK_50MHZ,
+		.regs_rowclk = {
+			.regs = os08e10_regs_rowclk_50mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_rowclk_50mhz),
+		},
+		.regs_mpll = {
+			.regs = os08e10_regs_mpll_726mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_mpll_726mhz),
+		},
+		.regs_dphy = {
+			.regs = os08e10_regs_dphy_726mhz,
+			.num_regs = ARRAY_SIZE(os08e10_regs_dphy_726mhz),
+		},
+		.formats = os08e10_formats_50mhz,
+		.num_formats = ARRAY_SIZE(os08e10_formats_50mhz),
 	},
 };
 
@@ -1041,8 +1040,8 @@ static int os08e10_soft_reset(struct os08e10 *os08e10)
 
 	ret = os08e10_write(os08e10, OS08E10_REG_SOFT_AUTO_RELEASE_EN,
 			    OS08E10_RESET_ALL, NULL);
-	ret = os08e10_write_regs(os08e10, os08e10_preinit,
-				 ARRAY_SIZE(os08e10_preinit), &ret);
+	ret = os08e10_write_regs(os08e10, os08e10_regs_preinit,
+				 ARRAY_SIZE(os08e10_regs_preinit), &ret);
 	ret = os08e10_write(os08e10, OS08E10_REG_SOFT_AUTO_RELEASE_EN,
 			    OS08E10_RESET_LOGIC, &ret);
 	if (ret)
@@ -1056,10 +1055,35 @@ static int os08e10_soft_reset(struct os08e10 *os08e10)
 
 static inline int
 os08e10_reg_seq_write(struct os08e10 *os08e10,
-		      struct os08e10_reg_sequence const *reg_sequence)
+		      struct os08e10_reg_sequence const *reg_sequence, int *err)
 {
 	return os08e10_write_regs(os08e10, reg_sequence->regs,
-				  reg_sequence->num_regs, NULL);
+				  reg_sequence->num_regs, err);
+}
+
+static int os08e10_pll_configure(struct os08e10 *os08e10)
+{
+	const struct os08e10_pll_config *pll_config = os08e10->pll_config;
+	int ret;
+
+	ret = os08e10_write_regs(os08e10, os08e10_regs_dpll,
+				 ARRAY_SIZE(os08e10_regs_dpll), NULL);
+	ret = os08e10_reg_seq_write(os08e10, &pll_config->regs_rowclk, &ret);
+	ret = os08e10_write_regs(os08e10, os08e10_regs_mpll,
+				 ARRAY_SIZE(os08e10_regs_mpll), &ret);
+
+	return os08e10_reg_seq_write(os08e10, &pll_config->regs_mpll, &ret);
+}
+
+static int os08e10_mipi_configure(struct os08e10 *os08e10)
+{
+	const struct os08e10_pll_config *pll_config = os08e10->pll_config;
+	int ret;
+
+	ret = os08e10_reg_seq_write(os08e10, &pll_config->regs_dphy, NULL);
+
+	return os08e10_write_regs(os08e10, os08e10_regs_mipi,
+				  ARRAY_SIZE(os08e10_regs_mipi), &ret);
 }
 
 static int os08e10_stream_on(struct os08e10 *os08e10)
@@ -1094,16 +1118,15 @@ static int os08e10_enable_streams(struct v4l2_subdev *sd,
 		goto err_rpm_put;
 	}
 
-	/* PLL config */
-	ret = os08e10_reg_seq_write(os08e10, &os08e10->pll_config->regs_pll);
+	ret = os08e10_pll_configure(os08e10);
 	if (ret < 0) {
 		dev_err(dev, "%s failed to configure pll settings\n", __func__);
 		goto err_rpm_put;
 	}
 
 	/* Common */
-	ret = os08e10_write_regs(os08e10, os08e10_common_init,
-				 ARRAY_SIZE(os08e10_common_init), NULL);
+	ret = os08e10_write_regs(os08e10, os08e10_regs_common,
+				 ARRAY_SIZE(os08e10_regs_common), NULL);
 	if (ret < 0) {
 		dev_err(dev, "%s failed to set common settings\n", __func__);
 		goto err_rpm_put;
@@ -1111,15 +1134,13 @@ static int os08e10_enable_streams(struct v4l2_subdev *sd,
 
 	/* Apply default values of current frame format */
 	mode = os08e10_state_get_mode(os08e10, state);
-	ret = os08e10_reg_seq_write(os08e10, &mode->reg_sequence);
+	ret = os08e10_reg_seq_write(os08e10, &mode->reg_sequence, NULL);
 	if (ret < 0) {
 		dev_err(dev, "%s failed to set frame format\n", __func__);
 		goto err_rpm_put;
 	}
 
-	/* MIPI config */
-	ret = os08e10_write_regs(os08e10, os08e10_mipi_init,
-				 ARRAY_SIZE(os08e10_mipi_init), NULL);
+	ret = os08e10_mipi_configure(os08e10);
 	if (ret < 0) {
 		dev_err(dev, "%s failed to configure mipi settings\n",
 			__func__);
