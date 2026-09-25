@@ -173,7 +173,7 @@
 #define OS08E10_SOFT_RESET_DELAY_MIN_US 2000
 #define OS08E10_DELAY_RANGE_US 1000
 
-#define OS08E10_BURST_MAX 16
+#define OS08E10_I2C_BURST_MAX 16
 
 #define OS08E10_NUM_SUPPLIES ARRAY_SIZE(os08e10_supply_names)
 
@@ -692,7 +692,7 @@ static int os08e10_write(struct os08e10 *os08e10, u32 reg, u32 val, int *err)
 					buf, OS08E10_REG_WIDTH(reg));
 	}
 
-	/* Page select does not survive register file reset */
+	/* Soft reset clears page select */
 	if (reg == OS08E10_REG_SOFT_AUTO_RELEASE_EN)
 		os08e10->page = OS08E10_PAGE_INVALID;
 
@@ -741,23 +741,25 @@ static int os08e10_write_regs(struct os08e10 *os08e10,
 	while (i < num_regs && !ret) {
 		u8 page = OS08E10_REG_PAGE(regs[i].reg);
 		u8 addr = OS08E10_REG_ADDR(regs[i].reg);
-		u8 buf[OS08E10_BURST_MAX];
-		unsigned int len;
+		unsigned int len = OS08E10_REG_WIDTH(regs[i].reg);
+		u8 buf[OS08E10_I2C_BURST_MAX];
 
 		os08e10_reg_to_bytes(regs[i].reg, regs[i].val, buf);
-		len = OS08E10_REG_WIDTH(regs[i].reg);
-		i++;
 
 		/* Batch contiguous registers below page select */
-		while (i < num_regs && OS08E10_REG_PAGE(regs[i].reg) == page &&
-		       OS08E10_REG_ADDR(regs[i].reg) == addr + len &&
-		       addr + len + OS08E10_REG_WIDTH(regs[i].reg) <=
-			       OS08E10_WR_RD_CTRL &&
-		       len + OS08E10_REG_WIDTH(regs[i].reg) <= sizeof(buf)) {
-			os08e10_reg_to_bytes(regs[i].reg, regs[i].val,
-					     &buf[len]);
-			len += OS08E10_REG_WIDTH(regs[i].reg);
-			i++;
+		for (i++; i < num_regs; i++) {
+			unsigned int width = OS08E10_REG_WIDTH(regs[i].reg);
+			unsigned int next = addr + len;
+			u32 reg = regs[i].reg;
+
+			if (OS08E10_REG_PAGE(reg) != page ||
+			    OS08E10_REG_ADDR(reg) != next ||
+			    next + width > OS08E10_WR_RD_CTRL ||
+			    len + width > sizeof(buf))
+				break;
+
+			os08e10_reg_to_bytes(reg, regs[i].val, &buf[len]);
+			len += width;
 		}
 
 		ret = os08e10_set_page(os08e10, page);
