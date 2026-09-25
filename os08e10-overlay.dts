@@ -31,6 +31,13 @@
 	fragment@3 {
 		target = <&cam_endpoint>;
 		__overlay__ {
+			data-lanes = <1 2>;
+		};
+	};
+
+	fragment@4 {
+		target = <&cam_endpoint>;
+		__dormant__ {
 			data-lanes = <1 2 3 4>;
 		};
 	};
@@ -38,6 +45,13 @@
 	fragment@5 {
 		target = <&csi_ep>;
 		__overlay__ {
+			data-lanes = <1 2>;
+		};
+	};
+
+	fragment@6 {
+		target = <&csi_ep>;
+		__dormant__ {
 			data-lanes = <1 2 3 4>;
 		};
 	};
@@ -105,6 +119,7 @@
 	};
 
 	__overrides__ {
+		4lane = <0>, "-3+4-5+6";
 		rotation = <&cam_node>,"rotation:0";
 		orientation = <&cam_node>,"orientation:0";
 		media-controller = <0>,"!102";
