@@ -1,6 +1,20 @@
 Source: os08e10-rpi-dkms
+Section: kernel
+Priority: optional
+Maintainer: Kurokesu <info@kurokesu.com>
+Build-Depends: debhelper-compat (= 13), dh-dkms
+Standards-Version: 4.7.0
+Homepage: https://github.com/Kurokesu/os08e10-rpi-driver
+Rules-Requires-Root: no
 
+Package: os08e10-rpi-dkms
+Architecture: all
+Depends: ${misc:Depends}, dkms, device-tree-compiler
+Recommends: linux-headers-rpi-2712 | linux-headers-rpi-v8
 Description: OmniVision OS08E10 camera driver for Raspberry Pi (DKMS)
  Kernel module and device tree overlay for OmniVision OS08E10, an 8 MP
  rolling shutter CMOS sensor, on Raspberry Pi with kernel 6.12 or newer.
  .
+ DKMS builds the module on target, so one package covers every Raspberry Pi
+ OS release and kernel update. Installing it also places os08e10 overlay
+ in /boot/overlays.
