@@ -1,0 +1,6 @@
+Source: os08e10-rpi-dkms
+
+Description: OmniVision OS08E10 camera driver for Raspberry Pi (DKMS)
+ Kernel module and device tree overlay for OmniVision OS08E10, an 8 MP
+ rolling shutter CMOS sensor, on Raspberry Pi with kernel 6.12 or newer.
+ .

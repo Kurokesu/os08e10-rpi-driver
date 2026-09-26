@@ -1,0 +1,18 @@
+name: Release
+
+# Cut releases with release.sh, see "Releasing" in debian/source/README.source
+
+on:
+  push:
+    tags: ['debian/**']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  dkms:
+    uses: Kurokesu/ci/.github/workflows/dkms-release.yml@main
+    secrets: inherit

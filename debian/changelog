@@ -1,0 +1,11 @@
+os08e10-rpi-dkms (0.1.0-1) unstable; urgency=medium
+
+  * Initial release as a DKMS source package.
+  * Driver state at this release:
+    - 3840x2160 at up to 60 fps in 10-bit and 30 fps in 12-bit RAW.
+    - 2-lane and 4-lane MIPI CSI-2 at up to 1452 Mbps per lane.
+    - os08e10 device tree overlay with cam0, 4lane, link-frequency
+      and always-on options.
+    - Targeting Linux kernel 6.12 or newer.
+
+ -- Danius Kalvaitis <danius@kurokesu.com>  Sat, 26 Sep 2026 19:17:14 +0300
