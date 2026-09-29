@@ -1,3 +1,12 @@
+os08e10-rpi-dkms (0.1.1-1) unstable; urgency=medium
+
+  * Drop 10-bit mode from 726 MHz 4-lane. Its fixed line length
+    exceeds Raspberry Pi ISP front end limit and corrupts processed
+    output at any frame rate. Use link-frequency=369000000 for 10-bit
+    on 4 lanes.
+
+ -- Danius Kalvaitis <danius@kurokesu.com>  Tue, 29 Sep 2026 20:18:21 +0300
+
 os08e10-rpi-dkms (0.1.0-1) unstable; urgency=medium
 
   * Initial release as a DKMS source package.
