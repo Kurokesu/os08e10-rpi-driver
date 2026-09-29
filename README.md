@@ -11,8 +11,7 @@ Raspberry Pi kernel driver for OmniVision OS08E10, an 8 MP rolling shutter 1/1.8
 
 - 2-lane and 4-lane MIPI CSI-2 (up to 1452 Mbps/lane)
 - 10-bit and 12-bit RAW output
-- 3840×2160 @ 60 fps (10-bit, 4-lane)
-- 3840×2160 @ 30 fps (12-bit, 4-lane)
+- 3840×2160 @ 30 fps (10-bit and 12-bit, 4-lane)
 
 ![Kurokesu camera modules connected to a Raspberry Pi 5](https://raw.githubusercontent.com/Kurokesu/os08e10-rpi-driver/main/docs/kurokesu-on-pi.jpg)
 
@@ -91,8 +90,7 @@ Expected output (varies by link frequency and lane configuration):
 Available cameras
 -----------------
 0 : os08e10 [3840x2160 12-bit] (/base/axi/pcie@1000120000/rp1/i2c@70000/os08e10@3c)
-    Modes: 'SBGGR10_CSI2P' : 3840x2160 [60.01 fps - (0, 0)/3840x2160 crop]
-           'SBGGR12_CSI2P' : 3840x2160 [30.01 fps - (0, 0)/3840x2160 crop]
+    Modes: 'SBGGR12_CSI2P' : 3840x2160 [30.01 fps - (0, 0)/3840x2160 crop]
 ```
 
 Start live preview:
@@ -158,11 +156,10 @@ dtoverlay=os08e10,link-frequency=369000000
 | 369 MHz | 738 Mbps | 4 | 12 | 3840 | 2160 | 15 fps |
 | 726 MHz | 1452 Mbps | 2 | 10 | 3840 | 2160 | 30 fps |
 | 726 MHz | 1452 Mbps | 2 | 12 | 3840 | 2160 | 15 fps |
-| 726 MHz | 1452 Mbps | 4 | 10 | 3840 | 2160 | 60 fps |
 | 726 MHz | 1452 Mbps | 4 | 12 | 3840 | 2160 | 30 fps |
 
 > [!NOTE]
-> 60 fps is raw capture only. Raspberry Pi ISP processes 3840×2160 at up to 30 fps.
+> 726 MHz 4-lane is 12-bit only. For 10-bit on 4 lanes use `link-frequency=369000000`.
 
 > [!TIP]
 > On Raspberry Pi 4 and CM4, CPU frequency scaling lowers ISP clock during 4K capture and drops frames at 30 fps. Add `force_turbo=1` to `config.txt` to hold clocks.
