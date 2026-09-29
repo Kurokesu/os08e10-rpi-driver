@@ -393,35 +393,6 @@ static const struct os08e10_reg os08e10_regs_10bit_25mhz[] = {
 	{ OS08E10_REG_DATA_ID3, 0x2B },
 };
 
-static const struct os08e10_reg os08e10_regs_10bit_50mhz[] = {
-	{ OS08E10_REG_PSNC_RST_EN, 0x60 },
-	{ OS08E10_REG_DAC_LOAD_HCG_6X, 0x92 },
-	{ OS08E10_REG_P56, 0x00 },
-	{ OS08E10_REG_P57, 0xD5 },
-	{ OS08E10_REG_P5E, 0x16 },
-	{ OS08E10_REG_P7B, 0x27 },
-	{ OS08E10_REG_P89, 0x0E },
-	{ OS08E10_REG_P8A, 0x50 },
-	{ OS08E10_REG_P91, 0x1A },
-	{ OS08E10_REG_P92, 0x30 },
-	{ OS08E10_REG_P95, 0x50 },
-	{ OS08E10_REG_PAA, 0x0B },
-	{ OS08E10_REG_PC3, 0x0B },
-	{ OS08E10_REG_P86_1X, 0x48 },
-	{ OS08E10_REG_P86_2X, 0x4B },
-	{ OS08E10_REG_P86_3X, 0x4B },
-	{ OS08E10_REG_P88_1X, 0x47 },
-	{ OS08E10_REG_P88_2X, 0x4A },
-	{ OS08E10_REG_P88_3X, 0x4A },
-	{ OS08E10_REG_DAC_BITS_SEL, 0x40 },
-	{ OS08E10_REG_BLC_45, 0x79 },
-	{ OS08E10_REG_BLC_47, 0x79 },
-	{ OS08E10_REG_RAW_12_EN, 0x00 },
-	{ OS08E10_REG_DATA_ID1, 0x2B },
-	{ OS08E10_REG_DATA_ID2, 0x2B },
-	{ OS08E10_REG_DATA_ID3, 0x2B },
-};
-
 /* Vendor tuned at 50MHz, reused at slower row clocks */
 static const struct os08e10_reg os08e10_regs_12bit[] = {
 	{ OS08E10_REG_PSNC_RST_EN, 0x61 },
@@ -518,25 +489,6 @@ static const struct os08e10_mode os08e10_modes_10bit_25mhz[] = {
 	},
 };
 
-static const struct os08e10_mode os08e10_modes_10bit_50mhz[] = {
-	{
-		.width = 3840,
-		.height = 2160,
-		.crop = {
-			.left = OS08E10_PIXEL_ARRAY_LEFT,
-			.top = OS08E10_PIXEL_ARRAY_TOP,
-			.width = 3840,
-			.height = 2160,
-		},
-		.hts = 357,
-		.vts = 2334,
-		.reg_sequence = {
-			.regs = os08e10_regs_10bit_50mhz,
-			.num_regs = ARRAY_SIZE(os08e10_regs_10bit_50mhz),
-		},
-	},
-};
-
 static const struct os08e10_mode os08e10_modes_12bit[] = {
 	{
 		.width = 3840,
@@ -576,12 +528,11 @@ static const struct os08e10_format os08e10_formats_25mhz[] = {
 	},
 };
 
+/*
+ * RAW10 is possible, but HTS is read only and its 7.14us line at 50MHz
+ * exceeds the PiSP front-end limit
+ */
 static const struct os08e10_format os08e10_formats_50mhz[] = {
-	{
-		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
-		.modes = os08e10_modes_10bit_50mhz,
-		.num_modes = ARRAY_SIZE(os08e10_modes_10bit_50mhz),
-	},
 	{
 		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
 		.modes = os08e10_modes_12bit,
